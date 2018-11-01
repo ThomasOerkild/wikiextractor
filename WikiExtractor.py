@@ -70,6 +70,7 @@ import json
 from io import StringIO
 from multiprocessing import Queue, Process, Value, cpu_count
 from timeit import default_timer
+from nltk.corpus import stopwords
 
 
 PY2 = sys.version_info[0] == 2
@@ -628,7 +629,12 @@ class Extractor(object):
         #
         text = self.transform(text)
         text = self.wiki2text(text)
-        text = compact(self.clean(text))
+        text = self.clean(text)
+        text = text.lower()
+        text = ' '.join([word for word in text.split(' ') if word not in stopword_list])
+        text = re.sub('[^a-z\s]+', '', text)
+        text = compact(text)
+
         text = [title_str] + text
         
         if sum(len(line) for line in text) < options.min_text_length:
@@ -2826,6 +2832,7 @@ def pages_from(input):
             title = None
             page = []
 
+stopword_list = stopwords.words('english')
 
 def process_dump(input_file, template_file, out_file, file_size, file_compress,
                  process_count):
